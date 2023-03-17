@@ -1,0 +1,56 @@
+const int ledPin13 = 13;
+const int ledPin5 = 5;
+const int buttonPin = 3;
+const int buzzerPin = 8;
+const int trigPin = 9;
+const int echoPin = 10;
+
+volatile bool buttonPressed = false;
+volatile bool distanceClose = false;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(ledPin13, OUTPUT);
+  pinMode(ledPin5, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonInterrupt, FALLING);
+  attachInterrupt(digitalPinToInterrupt(echoPin), distanceInterrupt, CHANGE);
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+  Serial.println("Distance: " + String(distance));
+
+  if (distance < 70) {
+    digitalWrite(ledPin13, HIGH);
+    digitalWrite(ledPin5, LOW);
+    tone(buzzerPin, 100);
+    delay(100);
+    noTone(buzzerPin);
+  } else {
+    digitalWrite(ledPin13, LOW);
+    digitalWrite(ledPin5, HIGH);
+    noTone(buzzerPin);
+  }
+}
+void buttonInterrupt() {
+  buttonPressed = true;
+}
+
+void distanceInterrupt() {
+  if (digitalRead(echoPin) == HIGH) {
+    distanceClose = true;
+  } else {
+    distanceClose = false;
+  }
+}
